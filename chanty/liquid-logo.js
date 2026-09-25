@@ -176,11 +176,14 @@
     var ctx = c.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(image, 0, 0, w, h);
     var px = ctx.getImageData(0, 0, w, h).data; // throws if the image taints the canvas
-    var n = w * h, inside = new Uint8Array(n), cover = new Float32Array(n), i;
+    var n = w * h, inside = new Uint8Array(n), cover = new Float32Array(n), count = 0, i;
     for (i = 0; i < n; i++) {
       cover[i] = px[i * 4 + 3] / 255;
       inside[i] = cover[i] >= 0.5 ? 1 : 0;
+      count += inside[i];
     }
+    // A logo with a solid background would turn into a copper rectangle.
+    if (!count || count / n > 0.85) throw new Error('logo needs a transparent background');
 
     var dist = insideDistance(inside, w, h), maxD = 0;
     for (i = 0; i < n; i++) if (inside[i] && dist[i] < 1e9 && dist[i] > maxD) maxD = dist[i];
